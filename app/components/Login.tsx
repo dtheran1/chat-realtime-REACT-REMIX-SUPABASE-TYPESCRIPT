@@ -1,6 +1,7 @@
-import { supabase } from "~/utils/supabase.server";
+import { useSupabase } from "~/hooks/useSupabase"
 
 export function Login () {
+  const supabase = useSupabase()
   const handleLogut = async () => {
     const { error } = await supabase.auth.signOut()
     if (error) {
