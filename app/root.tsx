@@ -1,4 +1,5 @@
-import type { MetaFunction, LinkFunction, LoaderArgs } from "@remix-run/node";
+import { useState } from "react";
+import { MetaFunction, LinkFunction, LoaderArgs, json } from "@remix-run/node";
 import {
   Links,
   LiveReload,
@@ -6,9 +7,12 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
 } from "@remix-run/react";
+import { createClient } from "@supabase/supabase-js";
 
 import styles from './styles/global.css';
+import { Database } from "./types/database";
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
@@ -20,16 +24,23 @@ export const links: LinkFunction = () => [
   { rel: "stylesheet" , href: styles }
 ];
 
-export const loader = async ({}:LoaderArgs) => {
+export const loader = async ({}: LoaderArgs) => {
   const env = {
     SUPABASE_URL: process.env.SUPABASE_URL!,
     SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY!
   }
 
-  return env 
+  return json({ env })
 }
 
 export default function App() {
+  const { env } = useLoaderData<typeof loader>()
+
+  const [supabase] = useState(() => createClient<Database>(
+    env.SUPABASE_URL,
+    env.SUPABASE_ANON_KEY
+  ))
+
   return (
     <html lang="es">
       <head>
@@ -37,7 +48,7 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <Outlet />
+        <Outlet context={{supabase}} />
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
